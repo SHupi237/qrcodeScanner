@@ -1,4 +1,5 @@
 <?php
+    //Stworzenie sesji zawierającej dane zalogowanego użtkownika
     session_start();
     $_SESSION['id']=$_GET['id'];
     $_SESSION['area_id']=$_GET['area_id'];
@@ -16,50 +17,56 @@
         echo '<h2>Data zalogowania:' . $time . '</h2>';
         $pdo = new PDO($dsn, $rootName, $password);
         if ($pdo) {
+            //Zapytaniem pobieramy nazwe działu
             $sth = $pdo->prepare('SELECT `name` FROM `area` WHERE `id`= ?');
             $sth->execute(array($_GET['area_id']));
             $result = $sth->fetch(PDO::FETCH_ASSOC);
             $result = json_encode($result);
-
+            
+             //Zapytaniem pobieramy imie i nazwisko użytkownika
             $request = $pdo->prepare('SELECT `id`,`name`,`surname` FROM `users` WHERE `id`=?');
             $request->execute(array($_SESSION['id']));
             $resultForRequest = $request->fetch(PDO::FETCH_ASSOC);
             $resultForRequest = json_encode($resultForRequest);
             echo '<h1>Witaj na stronie dzialu:' . json_decode($result)->name . '<br>użytkownik:' . json_decode($resultForRequest)->name . ' ' . json_decode($resultForRequest)->surname . '</h1>' ;
 
-            $check = $pdo->prepare('SELECT * FROM `work_days` WHERE `user_id`=?');
-            $check->execute(array($_SESSION['id']));
-            $checkResult = $check->fetch(PDO::FETCH_ASSOC);
+            //Sprawdzamy czy dany użtkownij nie jest już zalogowany
+            // $check = $pdo->prepare('SELECT * FROM `work_days` WHERE `user_id`=?');
+            // $check->execute(array($_SESSION['id']));
+            // $checkResult = $check->fetch(PDO::FETCH_ASSOC);
             
-            if(is_array($checkResult)){
-                $logInUser = $pdo -> prepare('UPDATE `work_days` SET `log_in`=?  WHERE `user_id` = ?');
-                $logInUser -> execute(array($time,$_SESSION['id']));
-            }else{
-                $insert = $pdo->prepare('INSERT INTO `work_days`(id,user_id,log_in,log_out,area_id)VALUE(null,?,?,null,?)');
-                $insert->execute(array($_SESSION['id'], $time,$_SESSION['area_id']));
-            }
+            // if(is_array($checkResult)){
+            //     //Jeśli jest już,to po prostu uaktualniamy dane
+            //     $logInUser = $pdo -> prepare('UPDATE `work_days` SET `log_in`=?,`log_out`=null,`status`=?   WHERE `user_id` = ?');
+            //     $logInUser -> execute(array($time,'aktywny',$_SESSION['id']));
+            // }else{
+            //     //Jeśli nie jest ,to dodajemy rekord
+            $insert = $pdo->prepare('INSERT INTO `work_days`(id,user_id,log_in,log_out,area_id)VALUE(null,?,?,null,?)');
+            $insert->execute(array($_SESSION['id'], $time,$_SESSION['area_id']));
+            // }
             
-            $tableRequest = $pdo->prepare('SELECT * FROM `users` WHERE `area_id`=?');
-            $tableRequest->execute(array($_GET['area_id']));
+            
+            //Tym zapytaniem pobieramy wszystkich użtkowników z danego działu
+            $tableRequest = $pdo->prepare('SELECT u.name,u.surname FROM work_days wd JOIN users u ON wd.user_id=u.id WHERE wd.log_out IS NULL;');
+            $tableRequest->execute();
             $resultForTableRequest = $tableRequest->fetchAll(PDO::FETCH_ASSOC);
             $resultForTableRequest = json_encode($resultForTableRequest);
+           
+           
+            //Za pomocą tabeli wyświetlamy użtkowników i ich godziny zalogowania i wylogowania
             
-            $getArea = $pdo->prepare('SELECT `log_in`,`log_out` FROM `work_days` WHERE `area_id`=?');
-            $getArea->execute(array($_SESSION['area_id']));
-            $resultGetArea = $getArea->fetchAll(PDO::FETCH_ASSOC);
-            $resultGetAreaArray = json_encode($resultGetArea);
+
             echo '<table>';
                 echo '<tr>';
-                    echo '<th>Pracownicy</th><th>Godzina zalogowania</th><th>Godzina wylogowania</th>';
+                    echo '<th>Pracownicy</th>';
                 echo '</tr>';
             for ($i=0; $i<count(json_decode($resultForTableRequest)); $i++) {
-                echo $i;
                 echo '<tr>';
-                    echo '<td>'. json_decode($resultForTableRequest)[$i]->name . ' ' . json_decode($resultForTableRequest)[$i]->surname . '</td>' . '<td>' . json_decode($resultGetAreaArray)[$i]->log_in . '</td>' . '<td>'. json_decode($resultGetAreaArray)[$i]->log_out  .'</td>';
+                    echo '<td>'. json_decode($resultForTableRequest)[$i]->name . ' ' . json_decode($resultForTableRequest)[$i]->surname . '</td>';
                 echo '</tr>';
             }
             echo '</table>';
             echo '<a href="./index.php">Zaloguj kolejną osobę</a><br>';
-            echo '<a href="./logOutUser.php">Wyloguj się</a>';
+            echo '<a href="./logOutUser.php">Wyloguj użytkownika</a>';
         }
 ?>

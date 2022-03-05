@@ -14,7 +14,6 @@ window.onload = function() {
             success: function(response) {
                 if (response !== 'false') {
                     //Jeśli zwróci nam coś innego niż fale,dane zwrócone z getUser.php wysyłamy do areaSite.php w linku
-                    console.log(JSON.parse(response));
                     window.location.href = './areaSite.php?id='+ JSON.parse(response).id +'&area_id=' + JSON.parse(response).area_id + '&name='+JSON.parse(response).name + '&surname=' + JSON.parse(response).surName;
                 } else {
                     alert('Nie ma takiego pracownika');

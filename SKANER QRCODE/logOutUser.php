@@ -13,7 +13,6 @@
         <?php 
             session_start();
             $time = date('Y-m-d H:i:s');
-            print_r($_SESSION);
             if (isset($_GET['id'])) {
                 $serverName = 'localhost';
                 $rootName = 'root';
@@ -22,16 +21,19 @@
                 $dsn = "mysql:host=$serverName;dbname=$dbName;charset=UTF8";
                     $pdo = new PDO($dsn, $rootName, $password);
                     if ($pdo) {
+                        //Sprawdzanie czy taki pracownik jest
                         $sth = $pdo->prepare('SELECT `id`,`area_id`,`name`, `surname`,`password` FROM `users` WHERE `name`=? AND `surname`=?');
                         $sth->execute(array($_GET['name'],$_GET['surname']));
                         $result = $sth->fetch(PDO::FETCH_ASSOC);
                         if(is_array($result)){
-                            $logOutUser = $pdo -> prepare('UPDATE `work_days` SET `log_out`=?  WHERE `user_id` = ?');
-                            $logOutUser -> execute(array($time,$_SESSION['id']));
+                            echo $_SESSION['id'];
+                            $logOutUser = $pdo -> prepare('UPDATE `work_days` SET `log_out`=? WHERE `user_id` = ?');
+                            $logOutUser -> execute(array($time,$_GET['id']));
+                            header('Location:./index.php');
                         }else{
                             echo 'Błąd.Wylogowywanie się nie powiodło.Skontaktuj się z administratorem';
                         }
-                        header('Location:./index.php');
+                        
                     }
                 
             }

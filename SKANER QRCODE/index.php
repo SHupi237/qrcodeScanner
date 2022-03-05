@@ -10,6 +10,6 @@
         <script src="https://raw.githubusercontent.com/mebjas/html5-qrcode/master/minified/html5-qrcode.min.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 		<script src="./script.js"></script>
-
+        <a href='./logOutUser.php'>Przejdź do strony wylogowania</a>
     </body>
 </html>

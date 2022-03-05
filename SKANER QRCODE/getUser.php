@@ -14,6 +14,7 @@
                 $sth->execute(array($_GET['name'],$_GET['surname'], md5($_GET['password'])));
                 $result = $sth->fetch(PDO::FETCH_ASSOC);
                 echo json_encode($result);
+                
             }
             
         }
